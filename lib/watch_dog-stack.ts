@@ -6,8 +6,15 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 
+interface WatchDogStackProps extends cdk.StackProps {
+  readonly topicName: string;
+  apiEndpoint: string;
+  watchDogKey: string;
+  apiSecret: string;
+}
+
 export class WatchDogStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: WatchDogStackProps) {
     super(scope, id, props);
 
     // Create an SNS topic
@@ -20,8 +27,12 @@ export class WatchDogStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_20_X,
       code: lambda.Code.fromAsset('lambda'),
       handler: 'index.handler',
+      functionName: 'WatchDogPoller',
       environment: {
         TOPIC_ARN: topic.topicArn,
+        API_ENDPOINT: props?.apiEndpoint || 'API_ENDPOINT',
+        WATCH_DOG_KEY: props?.watchDogKey || 'WATCH_DOG_KEY',
+        API_SECRET: props?.apiSecret || 'API_SECRET',
       }
     });
 
